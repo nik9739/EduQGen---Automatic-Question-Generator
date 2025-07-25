@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduQGen - Automatic Question Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #3498db;
+            --secondary-blue: #2980b9;
+            --light-green: #e8f8f5;
+            --accent-green: #2ecc71;
+            --dark-text: #2c3e50;
+            --light-text: #ecf0f1;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-text);
+            background-color: #f9f9f9;
+            line-height: 1.6;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: var(--primary-blue);
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-green) 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .input-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .lesson-input {
+            min-height: 200px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .lesson-input:focus {
+            border-color: var(--primary-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .generate-btn {
+            background-color: var(--accent-green);
+            border: none;
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+        
+        .generate-btn:hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+        }
+        
+        .results-container {
+            display: none;
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--dark-text);
+            font-weight: 600;
+            border: none;
+            padding: 0.8rem 1.5rem;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-blue);
+            border-bottom: 3px solid var(--primary-blue);
+            background-color: transparent;
+        }
+        
+        .tab-content {
+            padding: 1.5rem 0;
+        }
+        
+        .question-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary-blue);
+            background-color: var(--light-green);
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .action-buttons .btn {
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            color: var(--primary-blue);
+        }
+        
+        footer {
+            background-color: var(--dark-text);
+            color: var(--light-text);
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .footer-links a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: var(--accent-green);
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+            
+            .hero-section {
+                padding: 2rem 0;
+            }
+            
+            .input-container, .results-container {
+                padding: 1.5rem;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-graduation-cap me-2"></i>EduQGen
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-home me-1"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#aboutModal">
+                            <i class="fas fa-info-circle me-1"></i> About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#contactModal">
+                            <i class="fas fa-envelope me-1"></i> Contact
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold mb-3">AI-Powered Question Generator</h1>
+            <p class="lead">Transform any lesson text into exam-ready questions in seconds</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Input Section -->
+        <div class="input-container">
+            <h2 class="mb-4"><i class="fas fa-paste me-2"></i>Paste Your Lesson Text</h2>
+            <textarea class="form-control lesson-input" id="lessonText" placeholder="Paste your lesson here... (e.g., textbook content, notes, article)"></textarea>
+            <div class="d-flex justify-content-center">
+                <button class="btn generate-btn rounded-pill" id="generateBtn">
+                    <i class="fas fa-magic me-2"></i>Generate Questions
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner-border spinner" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Generating questions... This may take a few moments.</p>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-container" id="resultsContainer">
+            <h2 class="mb-4"><i class="fas fa-file-alt me-2"></i>Generated Questions</h2>
+            
+            <ul class="nav nav-tabs" id="questionTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="mcq-tab" data-bs-toggle="tab" data-bs-target="#mcq" type="button" role="tab">
+                        <i class="fas fa-list-ul me-1"></i>MCQs
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="short-tab" data-bs-toggle="tab" data-bs-target="#short" type="button" role="tab">
+                        <i class="fas fa-align-left me-1"></i>Short Answer
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="long-tab" data-bs-toggle="tab" data-bs-target="#long" type="button" role="tab">
+                        <i class="fas fa-align-center me-1"></i>Long Answer
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="questionTabsContent">
+                <div class="tab-pane fade show active" id="mcq" role="tabpanel">
+                    <div id="mcqQuestions">
+                        <!-- MCQs will be inserted here by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="short" role="tabpanel">
+                    <div id="shortQuestions">
+                        <!-- Short Answer questions will be inserted here -->
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="long" role="tabpanel">
+                    <div id="longQuestions">
+                        <!-- Long Answer questions will be inserted here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons mt-4">
+                <button class="btn btn-primary" id="copyAllBtn">
+                    <i class="fas fa-copy me-2"></i>Copy All Questions
+                </button>
+                <button class="btn btn-success" id="downloadPdfBtn">
+                    <i class="fas fa-file-pdf me-2"></i>Download as PDF
+                </button>
+                <button class="btn btn-outline-secondary" id="resetBtn">
+                    <i class="fas fa-redo me-2"></i>Start Over
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h2 class="modal-title"><i class="fas fa-graduation-cap me-2"></i>About EduQGen</h2>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="about-icon text-center mb-4">
+                        <i class="fas fa-lightbulb text-warning" style="font-size: 3rem;"></i>
+                    </div>
+                    <p class="lead text-center mb-4">
+                        Making studying easier for both students and teachers
+                    </p>
+                    
+                    <div class="about-features">
+                        <div class="d-flex mb-3">
+                            <div class="me-3 text-primary">
+                                <i class="fas fa-check-circle fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5>Automatic Question Generation</h5>
+                                <p class="mb-0">Creates exam-style questions (MCQs, short answers, long answers) from any lesson text</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex mb-3">
+                            <div class="me-3 text-primary">
+                                <i class="fas fa-globe-americas fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5>Universal Compatibility</h5>
+                                <p class="mb-0">Supports all academic subjects and education boards worldwide</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex">
+                            <div class="me-3 text-primary">
+                                <i class="fas fa-heart fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5>Free Educational Tool</h5>
+                                <p class="mb-0">Completely free service built purely for educational purposes</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-thumbs-up me-2"></i>Got It!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h2 class="modal-title"><i class="fas fa-envelope me-2"></i>Contact Us</h2>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-4 mb-md-0">
+                            <h4><i class="fas fa-map-marker-alt me-2"></i>Our Location</h4>
+                            <p>odisha india<br>Learning City, 101010</p>
+                            
+                            <h4 class="mt-4"><i class="fas fa-phone me-2"></i>Call Us</h4>
+                            <p>+1 (555) 123-4567</p>
+                            
+                            <h4 class="mt-4"><i class="fas fa-envelope me-2"></i>Email Us</h4>
+                            <p>jsgprimetime@gmail.com</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4><i class="fas fa-paper-plane me-2"></i>Send a Message</h4>
+                            <form>
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" placeholder="Your Name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="email" class="form-control" placeholder="Your Email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <textarea class="form-control" rows="3" placeholder="Your Message" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div class="modal fade" id="privacyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h2 class="modal-title"><i class="fas fa-shield-alt me-2"></i>Privacy Policy</h2>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <h4>1. Information Collection</h4>
+                        <p>We collect the text you input to generate questions, but we do not store this content permanently. All processing happens in your browser.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>2. Data Usage</h4>
+                        <p>The text you provide is used solely for generating educational questions. We do not share your data with third parties.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>3. Cookies</h4>
+                        <p>We use only essential cookies to maintain your session. No tracking cookies are used.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>4. Changes to Policy</h4>
+                        <p>We may update our Privacy Policy periodically. Changes will be posted on this page.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms & Conditions Modal -->
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h2 class="modal-title"><i class="fas fa-file-contract me-2"></i>Terms & Conditions</h2>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <h4>1. Acceptance of Terms</h4>
+                        <p>By using EduQGen, you agree to these terms. If you disagree, please refrain from using our service.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>2. User Responsibilities</h4>
+                        <p>You agree to use this service lawfully and without infringing others' rights.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>3. Intellectual Property</h4>
+                        <p>Generated questions are for your educational use. The EduQGen platform remains our intellectual property.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>4. Limitation of Liability</h4>
+                        <p>We are not liable for any indirect damages resulting from service use.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#aboutModal">About Us</a>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#contactModal">Contact Us</a>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms & Conditions</a>
+            </div>
+            <p class="text-center mb-2">EduQGen - AI Question Generator for Educators and Students</p>
+            <p class="text-center mb-0">© 2023 EduQGen. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generateBtn');
+            const lessonText = document.getElementById('lessonText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const copyAllBtn = document.getElementById('copyAllBtn');
+            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            
+            // Function to generate sample questions based on input text
+            function generateQuestions(text) {
+                // This is a simplified version - in a real app you would call an AI API
+                const questions = {
+                    mcqs: [
+                        {
+                            question: "What is the main topic of the provided text?",
+                            options: ["History", "Science", "Literature", "Mathematics"],
+                            answer: 1
+                        },
+                        {
+                            question: "Which of these concepts was mentioned in the text?",
+                            options: ["Photosynthesis", "Trigonometry", "World War II", "Shakespeare"],
+                            answer: 0
+                        }
+                    ],
+                    shortAnswers: [
+                        "Summarize the main idea of the text in 2-3 sentences.",
+                        "What are two key points mentioned in the text?"
+                    ],
+                    longAnswers: [
+                        "Explain in detail the concepts presented in the text.",
+                        "Discuss how the ideas in the text relate to what you've learned previously."
+                    ]
+                };
+                
+                // If certain keywords are detected, customize questions
+                if (text.toLowerCase().includes("math")) {
+                    questions.mcqs[0].question = "Which mathematical concept was discussed?";
+                    questions.mcqs[0].options = ["Algebra", "Geometry", "Calculus", "Statistics"];
+                }
+                else if (text.toLowerCase().includes("science")) {
+                    questions.mcqs[0].question = "Which scientific principle was mentioned?";
+                    questions.mcqs[0].options = ["Gravity", "Evolution", "Electricity", "Cells"];
+                }
+                
+                return questions;
+            }
+            
+            // Generate questions button click handler
+            generateBtn.addEventListener('click', function() {
+                const text = lessonText.value.trim();
+                
+                if (text === '') {
+                    alert('Please paste some lesson text first!');
+                    return;
+                }
+                
+                // Show loading spinner
+                loadingSpinner.style.display = 'block';
+                resultsContainer.style.display = 'none';
+                
+                // Simulate processing delay
+                setTimeout(function() {
+                    const questions = generateQuestions(text);
+                    
+                    // Clear previous questions
+                    document.getElementById('mcqQuestions').innerHTML = '';
+                    document.getElementById('shortQuestions').innerHTML = '';
+                    document.getElementById('longQuestions').innerHTML = '';
+                    
+                    // Add MCQs
+                    questions.mcqs.forEach((q, i) => {
+                        const mcqItem = document.createElement('div');
+                        mcqItem.className = 'question-item';
+                        
+                        let optionsHtml = '';
+                        q.options.forEach((opt, j) => {
+                            optionsHtml += `
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="q${i+1}" id="q${i+1}opt${j+1}">
+                                    <label class="form-check-label" for="q${i+1}opt${j+1}">${opt}</label>
+                                </div>
+                            `;
+                        });
+                        
+                        mcqItem.innerHTML = `
+                            <p class="fw-bold">${i+1}. ${q.question}</p>
+                            ${optionsHtml}
+                        `;
+                        
+                        document.getElementById('mcqQuestions').appendChild(mcqItem);
+                    });
+                    
+                    // Add Short Answer questions
+                    questions.shortAnswers.forEach((q, i) => {
+                        const shortItem = document.createElement('div');
+                        shortItem.className = 'question-item';
+                        shortItem.innerHTML = `<p class="fw-bold">${i+1}. ${q}</p>`;
+                        document.getElementById('shortQuestions').appendChild(shortItem);
+                    });
+                    
+                    // Add Long Answer questions
+                    questions.longAnswers.forEach((q, i) => {
+                        const longItem = document.createElement('div');
+                        longItem.className = 'question-item';
+                        longItem.innerHTML = `<p class="fw-bold">${i+1}. ${q}</p>`;
+                        document.getElementById('longQuestions').appendChild(longItem);
+                    });
+                    
+                    // Hide loading spinner and show results
+                    loadingSpinner.style.display = 'none';
+                    resultsContainer.style.display = 'block';
+                    
+                    // Scroll to results
+                    resultsContainer.scrollIntoView({ behavior: 'smooth' });
+                }, 1500); // 1.5 second delay to simulate processing
+            });
+            
+            // Copy All Questions button
+            copyAllBtn.addEventListener('click', function() {
+                const mcqContent = document.getElementById('mcqQuestions').innerText;
+                const shortContent = document.getElementById('shortQuestions').innerText;
+                const longContent = document.getElementById('longQuestions').innerText;
+                
+                const allContent = `Multiple Choice Questions:\n${mcqContent}\n\nShort Answer Questions:\n${shortContent}\n\nLong Answer Questions:\n${longContent}`;
+                
+                navigator.clipboard.writeText(allContent).then(() => {
+                    alert('All questions copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                    alert('Failed to copy questions. Please try again.');
+                });
+            });
+            
+            // Download as PDF button
+            downloadPdfBtn.addEventListener('click', function() {
+                const element = document.getElementById('resultsContainer');
+                const opt = {
+                    margin: 10,
+                    filename: 'EduQGen-Questions.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                
+                // Create PDF
+                html2pdf().set(opt).from(element).save();
+            });
+            
+            // Reset button
+            resetBtn.addEventListener('click', function() {
+                lessonText.value = '';
+                resultsContainer.style.display = 'none';
+                loadingSpinner.style.display = 'none';
+                lessonText.focus();
+            });
+        });
+    </script>
+</body>
+</html>
